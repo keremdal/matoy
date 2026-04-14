@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MateKazan - Matematik Oyunu</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a14;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:20px}
+  #app{font-family:'Nunito',sans-serif;width:100%;max-width:480px;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8)}
+  .header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:1.5rem;text-align:center;position:relative;overflow:hidden}
+  .header::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(229,57,53,0.15) 0%,transparent 60%);animation:pulse 3s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  .header h1{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:#fff;letter-spacing:2px;position:relative}
+  .header h1 span{color:#e53935}
+  .header p{color:rgba(255,255,255,0.7);font-size:0.85rem;margin-top:4px;position:relative}
+  .stats-bar{display:flex;gap:0;background:#0f0f1a;padding:0.75rem 1rem}
+  .stat{flex:1;text-align:center;border-right:1px solid rgba(255,255,255,0.1)}
+  .stat:last-child{border-right:none}
+  .stat-val{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;color:#e53935}
+  .stat-label{font-size:0.7rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px}
+  .game-area{background:#0d0d1a;padding:1.5rem;min-height:420px}
+  .mode-select{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:1rem 0}
+  .mode-btn{background:#16213e;border:2px solid rgba(229,57,53,0.3);border-radius:12px;padding:1.2rem;cursor:pointer;color:#fff;transition:all 0.2s;text-align:center}
+  .mode-btn:hover{border-color:#e53935;background:#1a1a2e;transform:translateY(-2px)}
+  .mode-btn .icon{font-size:2rem;display:block;margin-bottom:8px}
+  .mode-btn .name{font-weight:700;font-size:0.95rem}
+  .mode-btn .desc{font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:4px}
+  .question-card{background:#16213e;border:2px solid rgba(229,57,53,0.4);border-radius:16px;padding:1.5rem;margin-bottom:1rem;text-align:center}
+  .q-type{font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#e53935;margin-bottom:8px}
+  .q-text{font-size:2rem;font-weight:900;color:#fff;font-family:'Orbitron',monospace;min-height:60px;display:flex;align-items:center;justify-content:center}
+  .answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1rem}
+  .ans-btn{background:#0f0f1a;border:2px solid rgba(255,255,255,0.1);border-radius:10px;padding:1rem;font-size:1.1rem;font-weight:700;color:#fff;cursor:pointer;transition:all 0.15s;font-family:'Nunito',sans-serif}
+  .ans-btn:hover:not(:disabled){border-color:#e53935;background:#1a0a0a;transform:scale(1.03)}
+  .ans-btn.correct{background:#1b5e20!important;border-color:#4caf50!important;color:#fff!important}
+  .ans-btn.wrong{background:#b71c1c!important;border-color:#ef5350!important;color:#fff!important}
+  .ans-btn:disabled{cursor:default}
+  .progress-bar{height:6px;background:#0f0f1a;border-radius:3px;overflow:hidden;margin-bottom:1rem}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#e53935,#ff7043);border-radius:3px;transition:width 0.3s}
+  .feedback{text-align:center;padding:0.5rem;font-size:1rem;font-weight:700;min-height:28px;margin-top:0.5rem}
+  .feedback.good{color:#4caf50}
+  .feedback.bad{color:#ef5350}
+  .timer{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:1rem}
+  .timer-circle{width:48px;height:48px;border-radius:50%;border:3px solid #e53935;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-weight:700;font-size:1rem;color:#fff}
+  .timer-label{color:rgba(255,255,255,0.5);font-size:0.8rem}
+  .result-screen{text-align:center;padding:1rem 0}
+  .result-score{font-family:'Orbitron',monospace;font-size:3rem;font-weight:900;color:#e53935;margin:1rem 0}
+  .result-msg{color:rgba(255,255,255,0.8);font-size:1rem;margin-bottom:1.5rem}
+  .result-details{display:flex;gap:12px;justify-content:center;margin-bottom:1.5rem}
+  .r-badge{background:#16213e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:0.6rem 1rem;text-align:center}
+  .r-badge strong{display:block;font-size:1.2rem;color:#fff}
+  .r-badge span{font-size:0.7rem;color:rgba(255,255,255,0.5)}
+  .stars{font-size:2rem;margin:0.5rem 0}
+  .btn-primary{background:#e53935;border:none;border-radius:10px;padding:0.8rem 1.5rem;color:#fff;font-family:'Nunito',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:all 0.2s;margin:0 4px}
+  .btn-primary:hover{background:#c62828;transform:scale(1.05)}
+  .btn-secondary{background:transparent;border:2px solid rgba(255,255,255,0.2);border-radius:10px;padding:0.8rem 1.5rem;color:#fff;font-family:'Nunito',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:all 0.2s;margin:0 4px}
+  .btn-secondary:hover{border-color:rgba(255,255,255,0.5)}
+  .title-label{color:rgba(255,255,255,0.7);margin-bottom:1rem;font-size:0.9rem}
+  .diff-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:1rem}
+  .diff-btn{background:#16213e;border:2px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem 1rem;color:#fff;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:600;font-size:0.85rem;transition:all 0.2s}
+  .diff-btn.active{border-color:#e53935;background:rgba(229,57,53,0.15)}
+  .streak-badge{display:inline-block;background:rgba(255,193,7,0.15);border:1px solid rgba(255,193,7,0.4);border-radius:20px;padding:2px 10px;font-size:0.75rem;color:#ffc107;margin-left:8px}
+  .back-btn{background:transparent;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:0.8rem;font-family:'Nunito',sans-serif;margin-bottom:1rem;display:flex;align-items:center;gap:4px}
+  .back-btn:hover{color:#fff}
+  .anim-in{animation:fadeUp 0.3s ease forwards}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .wrong-shake{animation:shake 0.3s ease}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="header">
+    <h1>MATE<span>KAZAN</span></h1>
+    <p>11. Sınıf Matematik Oyunu</p>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-val" id="s-score">0</div><div class="stat-label">Puan</div></div>
+    <div class="stat"><div class="stat-val" id="s-streak">0</div><div class="stat-label">Seri</div></div>
+    <div class="stat"><div class="stat-val" id="s-best">0</div><div class="stat-label">En İyi</div></div>
+    <div class="stat"><div class="stat-val" id="s-correct">0</div><div class="stat-label">Doğru</div></div>
+  </div>
+  <div class="game-area" id="game-area"></div>
+</div>
+
+<script>
+const GA = document.getElementById('game-area');
+const modes = [
+  {id:'carpim', icon:'✖', name:'Çarpma & Bölme', desc:'Hız ve doğruluk testi'},
+  {id:'karekup', icon:'√', name:'Kare & Küp', desc:'Kare kök, küp kök'},
+  {id:'denklem', icon:'=', name:'Denklem Çöz', desc:'1. ve 2. derece'},
+  {id:'yuzde', icon:'%', name:'Yüzde Hesapla', desc:'Oran ve orantı'},
+  {id:'karma', icon:'★', name:'Karma Sorular', desc:'Her şeyden biraz'}
+];
+
+let state = {
+  screen: 'home',
+  mode: null,
+  diff: 'orta',
+  score: 0,
+  streak: 0,
+  best: parseInt(localStorage.getItem('mateBest') || '0'),
+  correct: 0,
+  wrong: 0,
+  qNum: 0,
+  totalQ: 10,
+  timerVal: 20,
+  timerMax: 20,
+  timerID: null,
+  currentQ: null,
+  answered: false
+};
+
+function updateStats() {
+  document.getElementById('s-score').textContent = state.score;
+  document.getElementById('s-streak').textContent = state.streak;
+  document.getElementById('s-best').textContent = state.best;
+  document.getElementById('s-correct').textContent = state.correct;
+}
+
+function genQuestion(mode, diff) {
+  const d = {kolay:{range:20}, orta:{range:50}, zor:{range:100}};
+  const cfg = d[diff] || d.orta;
+  const r = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+
+  const m = mode === 'karma' ? modes[r(0, 3)].id : mode;
+  let q;
+
+  if (m === 'carpim') {
+    const ops = ['+', '-', '×', '÷'];
+    const op = ops[r(0, diff === 'kolay' ? 1 : diff === 'orta' ? 2 : 3)];
+    if (op === '×') { let a=r(2,cfg.range/2), b=r(2,cfg.range/2); q={text:`${a} × ${b}`, ans:a*b, type:'Çarpma'}; }
+    else if (op === '÷') { let b=r(2,cfg.range/4), a=b*r(2,cfg.range/4); q={text:`${a} ÷ ${b}`, ans:a/b, type:'Bölme'}; }
+    else if (op === '+') { let a=r(1,cfg.range), b=r(1,cfg.range); q={text:`${a} + ${b}`, ans:a+b, type:'Toplama'}; }
+    else { let a=r(cfg.range/2,cfg.range), b=r(1,a); q={text:`${a} − ${b}`, ans:a-b, type:'Çıkarma'}; }
+  } else if (m === 'karekup') {
+    const sq = [1,4,9,16,25,36,49,64,81,100,121,144,169,196,225,256,289,324,361,400];
+    const cubes = [1,8,27,64,125,216,343,512];
+    if (r(0,1)) { const n=sq[r(0, diff==='kolay'?5:diff==='orta'?12:sq.length-1)]; q={text:`√${n}`, ans:Math.sqrt(n), type:'Kare Kök'}; }
+    else { const n=cubes[r(0, diff==='kolay'?3:cubes.length-1)]; q={text:`∛${n}`, ans:Math.cbrt(n), type:'Küp Kök'}; }
+    q.ans = Math.round(q.ans);
+  } else if (m === 'denklem') {
+    const a=r(1,cfg.range/10), b=r(1,cfg.range/5), x=r(1,20), res=a*x+b;
+    q = {text:`${a}x + ${b} = ${res},  x = ?`, ans:x, type:'Denklem'};
+  } else if (m === 'yuzde') {
+    const total = r(2,10)*10;
+    const pct = [10,20,25,30,40,50,75][r(0,6)];
+    q = {text:`${total}'in %${pct}'i kaçtır?`, ans:total*pct/100, type:'Yüzde'};
+  }
+
+  // Yanlış şıklar üret
+  const wrongs = new Set();
+  while (wrongs.size < 3) {
+    const offset = r(1, Math.max(5, Math.floor(Math.abs(q.ans) * 0.5) || 5));
+    const wrong = q.ans + (Math.random() > 0.5 ? 1 : -1) * offset;
+    if (Math.round(wrong) !== Math.round(q.ans) && wrong > 0) wrongs.add(Math.round(wrong));
+  }
+  const opts = [Math.round(q.ans), ...wrongs].sort(() => Math.random() - 0.5);
+  return {...q, ans: Math.round(q.ans), opts};
+}
+
+function renderHome() {
+  state.screen = 'home';
+  GA.innerHTML = `
+    <div class="anim-in">
+      <p class="title-label" style="text-align:center;margin-top:0.5rem">Bir oyun modu seç:</p>
+      <div class="mode-select">
+        ${modes.map(m => `<div class="mode-btn" onclick="selectMode('${m.id}')">
+          <span class="icon">${m.icon}</span>
+          <div class="name">${m.name}</div>
+          <div class="desc">${m.desc}</div>
+        </div>`).join('')}
+      </div>
+      ${state.best > 0 ? `<p style="text-align:center;font-size:0.8rem;color:rgba(255,255,255,0.4);margin-top:0.5rem">En yüksek puan: <strong style="color:#ffc107">${state.best}</strong></p>` : ''}
+    </div>`;
+}
+
+function selectMode(mode) {
+  state.mode = mode;
+  renderDifficulty();
+}
+
+function renderDifficulty() {
+  GA.innerHTML = `
+    <div class="anim-in">
+      <button class="back-btn" onclick="renderHome()">← Geri</button>
+      <p class="title-label" style="text-align:center">Zorluk seviyesi seç:</p>
+      <div class="diff-btns">
+        <div class="diff-btn ${state.diff==='kolay'?'active':''}" onclick="setDiff('kolay')">😊 Kolay</div>
+        <div class="diff-btn ${state.diff==='orta'?'active':''}" onclick="setDiff('orta')">😤 Orta</div>
+        <div class="diff-btn ${state.diff==='zor'?'active':''}" onclick="setDiff('zor')">🔥 Zor</div>
+      </div>
+      <div style="text-align:center;margin-top:1rem">
+        <button class="btn-primary" onclick="startGame()">Oyuna Başla!</button>
+      </div>
+    </div>`;
+}
+
+function setDiff(d) { state.diff = d; renderDifficulty(); }
+
+function startGame() {
+  state.score = 0; state.streak = 0; state.correct = 0;
+  state.wrong = 0; state.qNum = 0; state.answered = false;
+  state.timerMax = state.diff === 'kolay' ? 25 : state.diff === 'orta' ? 20 : 15;
+  updateStats();
+  nextQuestion();
+}
+
+function nextQuestion() {
+  if (state.qNum >= state.totalQ) { renderResult(); return; }
+  state.qNum++;
+  state.answered = false;
+  state.currentQ = genQuestion(state.mode, state.diff);
+  state.timerVal = state.timerMax;
+  renderQuestion();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(state.timerID);
+  updateTimer();
+  state.timerID = setInterval(() => {
+    state.timerVal--;
+    updateTimer();
+    if (state.timerVal <= 0) { clearInterval(state.timerID); if (!state.answered) timeUp(); }
+  }, 1000);
+}
+
+function updateTimer() {
+  const el = document.getElementById('timer-val');
+  const fill = document.getElementById('timer-fill');
+  const circle = document.getElementById('timer-circle');
+  if (el) el.textContent = state.timerVal;
+  if (fill) fill.style.width = ((state.timerVal / state.timerMax) * 100) + '%';
+  if (circle) {
+    if (state.timerVal <= 5) circle.style.borderColor = '#ef5350';
+    else if (state.timerVal <= 10) circle.style.borderColor = '#ffc107';
+    else circle.style.borderColor = '#e53935';
+  }
+}
+
+function renderQuestion() {
+  const q = state.currentQ;
+  GA.innerHTML = `
+    <div class="anim-in">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
+        <div class="timer">
+          <div class="timer-circle" id="timer-circle"><span id="timer-val">${state.timerVal}</span></div>
+          <span class="timer-label">saniye</span>
+        </div>
+        <div style="text-align:right;color:rgba(255,255,255,0.5);font-size:0.85rem">
+          Soru ${state.qNum}/${state.totalQ}
+          ${state.streak >= 3 ? `<span class="streak-badge">🔥 ${state.streak} seri!</span>` : ''}
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="timer-fill" style="width:100%"></div></div>
+      <div class="question-card" id="qcard">
+        <div class="q-type">${q.type}</div>
+        <div class="q-text">${q.text}</div>
+      </div>
+      <div class="answers" id="answers">
+        ${q.opts.map((o, i) => `<button class="ans-btn" id="ans-${i}" onclick="answer(${o},${i})">${o}</button>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>`;
+  updateTimer();
+}
+
+function answer(val, idx) {
+  if (state.answered) return;
+  state.answered = true;
+  clearInterval(state.timerID);
+  const q = state.currentQ;
+  const correct = Math.round(val) === Math.round(q.ans);
+  document.querySelectorAll('.ans-btn').forEach(b => b.disabled = true);
+
+  if (correct) {
+    document.getElementById('ans-' + idx).classList.add('correct');
+    const bonus = state.streak >= 5 ? 50 : state.streak >= 3 ? 25 : 0;
+    const timeBonus = Math.floor(state.timerVal / state.timerMax * 10);
+    const pts = 10 + bonus + timeBonus;
+    state.score += pts;
+    state.streak++;
+    state.correct++;
+    document.getElementById('feedback').className = 'feedback good';
+    document.getElementById('feedback').textContent = `✓ Doğru! +${pts} puan${bonus ? ` (${bonus} seri bonusu)` : ''}`;
+  } else {
+    document.getElementById('ans-' + idx).classList.add('wrong');
+    document.querySelectorAll('.ans-btn').forEach(b => {
+      if (parseInt(b.textContent) === Math.round(q.ans)) b.classList.add('correct');
+    });
+    state.streak = 0; state.wrong++;
+    document.getElementById('feedback').className = 'feedback bad';
+    document.getElementById('feedback').textContent = `✗ Yanlış! Doğru cevap: ${q.ans}`;
+    document.getElementById('qcard').classList.add('wrong-shake');
+  }
+
+  if (state.score > state.best) { state.best = state.score; localStorage.setItem('mateBest', state.best); }
+  updateStats();
+  setTimeout(nextQuestion, 1400);
+}
+
+function timeUp() {
+  if (state.answered) return;
+  state.answered = true;
+  state.streak = 0; state.wrong++;
+  document.querySelectorAll('.ans-btn').forEach(b => {
+    b.disabled = true;
+    if (parseInt(b.textContent) === Math.round(state.currentQ.ans)) b.classList.add('correct');
+  });
+  document.getElementById('feedback').className = 'feedback bad';
+  document.getElementById('feedback').textContent = `⏰ Süre doldu! Doğru: ${state.currentQ.ans}`;
+  updateStats();
+  setTimeout(nextQuestion, 1400);
+}
+
+function renderResult() {
+  const pct = Math.round(state.correct / state.totalQ * 100);
+  const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : pct >= 30 ? 1 : 0;
+  const msgs = ['Tekrar dene! 💪', 'İyi başlangıç! 👍', 'Güzel iş! 😊', 'Harika! 🎉', 'Mükemmel! 🌟'];
+  GA.innerHTML = `
+    <div class="anim-in result-screen">
+      <div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
+      <div class="result-score">${state.score}</div>
+      <p style="color:rgba(255,255,255,0.6);font-size:0.8rem;margin-top:-0.5rem;margin-bottom:0.5rem">PUAN</p>
+      <p class="result-msg">${msgs[Math.min(stars + (pct===100?1:0), 4)]}</p>
+      <div class="result-details">
+        <div class="r-badge"><strong style="color:#4caf50">${state.correct}</strong><span>Doğru</span></div>
+        <div class="r-badge"><strong style="color:#ef5350">${state.wrong}</strong><span>Yanlış</span></div>
+        <div class="r-badge"><strong style="color:#ffc107">${pct}%</strong><span>Başarı</span></div>
+        <div class="r-badge"><strong style="color:#e53935">${state.best}</strong><span>En İyi</span></div>
+      </div>
+      <div>
+        <button class="btn-primary" onclick="startGame()">Tekrar Oyna</button>
+        <button class="btn-secondary" onclick="renderHome()">Mod Seç</button>
+      </div>
+    </div>`;
+}
+
+// Başlat
+updateStats();
+renderHome();
+</script>
+</body>
+</html>
