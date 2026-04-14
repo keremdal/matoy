@@ -7,7 +7,7 @@
   "trailingSlash": false,
   "routes": [
     { "handle": "filesystem" },
-    { "src": "^/$", "dest": "/index.html" },
-    { "src": "^(.*)$", "dest": "/index.html" }
+    { "src": "^/$", "dest": "/matekazan.html" },
+    { "src": "^(.*)$", "dest": "/matekazan.html" }
   ]
 }
